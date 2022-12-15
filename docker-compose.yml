@@ -1,0 +1,76 @@
+version: '3'
+# ==================== WINDOWS/Linux INSTRUCTIONS ====================
+# NOTE: Make sure you know what cuda version installed on your gpu and change the version of pytorch in the Dockerfile accordingly
+
+ # TO RUN TRAINING: docker-compose up train
+ # TO RUN INFERENCE: docker-compose up inference
+
+ # If your system does not have an NVIDIA GPU, please use the commands label with "no-gpu", using the non-label commands will cause errors on systems without a GPU
+  
+  # TO RUN TRAINING WITHOUT GPU: docker-compose up train-no-gpu
+  # TO RUN INFERENCE WITHOUT GPU: docker-compose up inference-no-gpu
+
+ # ==================== MACBOOK INSTRUCTIONS ====================
+ # If you are using a macbook please use the commands label with "Macbook", using the non-label commands will cause errors on macbooks as the target is for windows
+ # TO RUN TRAINING ON MACBOOK: docker-compose up train-mac
+  # TO RUN INFERENCE ON MACBOOK: docker-compose up inference-mac
+services:
+  train:
+    build: ./Docker/Dev-Linux/
+    command: python3 ./src/engine.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+  train-no-gpu:
+    build: ./Docker/Dev-Linux/
+    command: python3 ./src/engine.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000
+
+  inference:
+    build: ./Docker/Dev-Linux/
+    command: python3 ./src/inference.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]
+  inference-no-gpu:
+    build: ./Docker/Dev-Linux/
+    command: python3 ./src/inference.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000s
+
+  # ==================== MACBOOK commands ====================
+  train-mac:
+    build: ./Docker/Dev-Mac/
+    command: python3 ./src/engine.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000
+
+  inference-mac:
+    build: ./Docker/Dev-Mac/
+    command: python3 ./src/inference.py
+    volumes:
+      - .:/backend
+    ports:
+      - 8000:8000s
+
+  
+  
