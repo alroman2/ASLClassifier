@@ -20,8 +20,6 @@ services:
     command: python3 ./src/engine.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000
     deploy:
       resources:
         reservations:
@@ -32,16 +30,12 @@ services:
     command: python3 ./src/engine.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000
 
   inference:
     build: ./Docker/Dev-Linux/
     command: python3 ./src/inference.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000
     deploy:
       resources:
         reservations:
@@ -52,8 +46,6 @@ services:
     command: python3 ./src/inference.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000s
 
   # ==================== MACBOOK commands ====================
   train-mac:
@@ -61,16 +53,11 @@ services:
     command: python3 ./src/engine.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000
 
   inference-mac:
     build: ./Docker/Dev-Mac/
     command: python3 ./src/inference.py
     volumes:
       - .:/backend
-    ports:
-      - 8000:8000s
-
   
   

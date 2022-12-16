@@ -48,5 +48,4 @@ WORKDIR /backend
 COPY . /backend/
 
 
-EXPOSE 8000
 
