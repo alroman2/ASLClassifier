@@ -32,12 +32,15 @@ model.eval()
 
 
 def ground_truth(image_path):
-    pattern = re.compile(
-        r"[a-zA-Z]+\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.", re.IGNORECASE)
-    image_name = pattern.match(image_path.split('/')[-1]).group(0)
+    # pattern = re.compile(
+    #    r"[a-zA-Z]+\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.", re.IGNORECASE)
+    #image_name = pattern.match(image_path.split('/')[-1]).group(0)
     #image_name = image_path.split('/')[-1].split('.')[0]
-    xml_path = f'{DIR_IMAGES}/{image_name}xml'
+    # xml_path = f'{DIR_IMAGES}/{image_name}xml'
     # get the bounding boxes from the xml file
+    image_path = image_path.split('/')[-1]
+    file_name = image_path[:-4]+'.xml'
+    xml_path = os.path.join(DIR_IMAGES, file_name)
     tree = ET.parse(xml_path)
     root = tree.getroot()
     boxes = []
@@ -73,6 +76,9 @@ def calculate_iou(ground_truth_box_array, predicted_box_array):
     float
         in [0, 1]
     """
+    if predicted_box_array is None or len(predicted_box_array) == 0:
+        return 0.0
+
     ground_truth_box_array = ground_truth_box_array[0]
     bb1 = {
         'x1': ground_truth_box_array[0],
@@ -149,17 +155,17 @@ if __name__ == '__main__':
             outputs = model(image)
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
 
-        if len(outputs[0]['boxes']) != 0:
-            boxes = outputs[0]['boxes'].data.numpy()
-            scores = outputs[0]['scores'].data.numpy()
+        boxes = outputs[0]['boxes'].data.numpy()
+        scores = outputs[0]['scores'].data.numpy()
 
-            # filter out boxes with score less than threshold
-            boxes = boxes[scores >= DETECTION_THRESHOLD].astype(np.int32)
-            draw_boxes = boxes.copy()
-            # get predicted classes
-            pred_classes = [CLASSES[i]
-                            for i in outputs[0]['labels'].cpu().numpy()]
-            # draw boxes
+        # filter out boxes with score less than threshold
+        boxes = boxes[scores >= DETECTION_THRESHOLD].astype(np.int32)
+        draw_boxes = boxes.copy()
+        # get predicted classes
+        pred_classes = [CLASSES[i]
+                        for i in outputs[0]['labels'].cpu().numpy()]
+        # draw boxes
+        if len(draw_boxes) != 0:
             for j, box in enumerate(draw_boxes):
                 cv2.rectangle(original_image, (box[0], box[1]),
                               (box[2], box[3]), (0, 0, 255), 2)
@@ -167,10 +173,16 @@ if __name__ == '__main__':
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (36, 255, 12), 2, lineType=cv2.LINE_AA)
                 print(f"Image {image_name} : {pred_classes[j]}")
                 # calculate iou for each box
-                iou = calculate_iou(ground_truth_boxes, box)
-                model_metric.update(ground_truth_boxes, box)
-                print(f"Image {image_name} iou to ground truth: {iou}")
-                print(f"Precission: {model_metric.precision()}")
-                print(f"Recall: {model_metric.recall()}")
-            cv2.imwrite(f'{DIR_IMAGES_OUT}/{image_name}.jpg', original_image)
-            print(f"Image {i+1} done")
+            iou = calculate_iou(ground_truth_boxes, box)
+            model_metric.update(ground_truth_boxes, box)
+            print(f"Image {image_name} iou to ground truth: {iou}")
+            print(f"Precision: {model_metric.precision()}")
+            print(f"Recall: {model_metric.recall()}")
+        else:
+            iou = calculate_iou(ground_truth_boxes, None)
+            model_metric.update(ground_truth_boxes, None)
+            print(f"Image {image_name} iou to ground truth: {iou}")
+            print(f"Precision: {model_metric.precision()}")
+            print(f"Recall: {model_metric.recall()}")
+        cv2.imwrite(f'{DIR_IMAGES_OUT}/{image_name}.jpg', original_image)
+        print(f"Image {i+1} done")
