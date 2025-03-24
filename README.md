@@ -1,3 +1,7 @@
+#ASL Classifier
+
+A training ground for identifying American Sign Language via video input
+
 1. Install docker before proceeding
 2. Follow bellow instructions for your system
 # ==================== WINDOWS/Linux INSTRUCTIONS ====================
